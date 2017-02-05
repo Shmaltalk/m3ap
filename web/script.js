@@ -59,10 +59,10 @@ function setUpCanvas() {
 }
 
 function startDrawing() {
-    var promise = APIStuff();
+    var promise = realAPIStuff();
     promise.then(function(result) {
         beatsArray = result;
-        audio = new Audio('../music/Bodyache.ogg');
+        audio = new Audio('../music/Talk to Me.ogg');
         audio.addEventListener('loadedmetadata', function() {
             audio.play();
             requestAnimationFrame(draw);
@@ -72,17 +72,16 @@ function startDrawing() {
 
 function draw() {
     time = (audio.currentTime);
-    measure = time/measures; //get from API
-    lines = measure*3; //some other formula?
     if (beatsArray[0]) {
         if (time >= beatsArray[0]['timeStamp']) {
             currData = beatsArray.shift();
             if (currData['newM'] == true || true) {
                 console.log(currData['timeStamp']);
                 var circleFillColor = Math.random(5);
-                var radius = 2 * currData['timeStamp'];
+                var radius = 8 * currData['timeStamp'];
                 var startAngle = 0 * Math.PI;
                 var endAngle = 2 * Math.PI;
+                let lines = 5;
 
                 /*ctx.beginPath();
                 ctx.arc(x0, y0, radius, startAngle, endAngle, true);
@@ -156,6 +155,16 @@ function APIStuff() {
     return toR.promise;
 }
 
+function realAPIStuff() {
+    return axios.get('/beats/1').then(function (r) {
+        return r.data.auftakt_result.click_marks
+            .map(function (i) {
+                return {"newM": (i.downbeat == "false" ? false : true),
+                        "timeStamp": i.time };
+            });
+    });
+}
+
 
 (function() {
     var lastTime = 0;
@@ -181,3 +190,4 @@ function APIStuff() {
             clearTimeout(id);
         };
 }());
+
