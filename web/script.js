@@ -22,6 +22,9 @@ var analyser;
 var currentLines = [];
 var lastColor = "";
 
+var canvas3;
+var ctx3;
+
 
 function changeColor() {
     let selColor = 0;
@@ -47,10 +50,8 @@ function changeColor() {
 }
 
 function getThickness(ampli, radius) {
-    console.log(Math.log(radius));
-    // avg: 32
     return (ampli / 2048) * (Math.log(radius) / 8);
-}
+ }
 
 function symmetricLine(x1, y1, x2, y2, thickness) {
     ctx2.lineWidth = thickness;
@@ -82,6 +83,10 @@ function symmetricLine(x1, y1, x2, y2, thickness) {
 
 
 function setUpCanvas() {
+    canvas3 = document.getElementById("spectro");
+    ctx3 = canvas3.getContext('2d');
+
+    
     let overlay = document.getElementById("overlay");
     canvas2 = overlay;
     canvas = document.getElementById('art');
@@ -96,13 +101,54 @@ function setUpCanvas() {
 }
 
 function startDrawing() {
-    var promise = realAPIStuff();
+    let e = document.getElementById("exampleRecipientInput");
+    console.log(e.options[e.selectedIndex].value);
+
+    const trackNum = e.options[e.selectedIndex].value;
+    let audioFile = "";
+
+    if (trackNum == "0") {
+        audioFile = "Talk to Me.ogg";
+    } else if (trackNum == "2") {
+        audioFile = "Wild.ogg";
+    } else if (trackNum == "3") {
+        audioFile = "Good.ogg";
+    } else if (trackNum == "6") {
+        audioFile = "Save Tonight.ogg";
+    } else if (trackNum == "7") {
+        audioFile = "Lights.ogg";
+    } else if (trackNum == "8") {
+        audioFile = "SELFIE.ogg";
+    } else if (trackNum == "9") {
+        audioFile = "Cross Your Fingers.ogg";
+    } else if (trackNum == "10") {
+        audioFile = "Be OK.ogg";
+    } else if (trackNum == "11") {
+        audioFile = "If I Die Young.ogg";
+    } else if (trackNum == "12") {
+        audioFile = "Sweet Dreams.ogg";
+    } else if (trackNum == "13") {
+        audioFile = "Here.ogg";
+    }
+        
+    
+    
+    var promise = realAPIStuff(trackNum);
     promise.then(function(result) {
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx2.clearRect(0, 0, canvas.width, canvas.height);
+        ctx3.clearRect(0, 0, canvas.width, canvas.height);
+        currentLines = [];
+        radius = 1;
+        
         audioCtx = new AudioContext();
         analyser = audioCtx.createAnalyser();
         analyser.fftSize = 256;
         dataArray = new Uint8Array(analyser.frequencyBinCount);
-        audio = new Audio('../music/Wild.ogg');
+        // music location ogg
+        if (audio) audio.pause();
+        audio = new Audio("/music/" + audioFile);
         let source = audioCtx.createMediaElementSource(audio);
         source.connect(analyser);
         analyser.connect(audioCtx.destination);
@@ -115,16 +161,47 @@ function startDrawing() {
     });
 }
 
+
+var peakWindow = [];
 function draw() {
     time = (audio.currentTime);
     analyser.getByteFrequencyData(dataArray);
+
+
+//    ctx3.clearRect(0, 0, canvas.width, canvas.height);
+    ctx3.fillStyle = "#990066";
+    ctx3.fillRect(0, 0, canvas.width, canvas.height);
+
+    
     let avg = 0.0;
+    const barWidth = (canvas.width / analyser.frequencyBinCount) / 2;
     for (let c = 0; c < analyser.frequencyBinCount; c++) {
         //avg = Math.max(avg, dataArray[c]);
+
+
+        
+        ctx3.fillStyle = "#FFE9E9";
+        const barHeight = (dataArray[c] / 255) * canvas.height;
+        ctx3.fillRect(barWidth * c,
+                      canvas.height - barHeight,
+                      barWidth+1, barHeight);
+        
+        ctx3.fillRect(canvas.width - (barWidth * c),
+                      canvas.height - barHeight,
+         barWidth+1, barHeight);
+        
+        /*ctx3.fillRect(canvas.width - (barWidth * c),
+                      0,
+         barWidth+1, barHeight);*/
+        
+        
         avg += Math.pow(dataArray[c], 2);
     }
 
     avg /= analyser.frequencyBinCount;
+
+    
+
 
     
     if (beatsArray[0]) {
@@ -150,7 +227,8 @@ function draw() {
             currData = beatsArray.shift();
             if (currData['newM'] == true) {
                 var circleFillColor = Math.random(5);
-                radius = (240 / 2) *
+                // old: 240 / 2
+                radius = (300 / 2) *
                     (1 - Math.cos(Math.PI * currData['timeStamp'] / 30))
                     + 45;
                 var startAngle = 0 * Math.PI;
@@ -165,10 +243,32 @@ function draw() {
                 changeColor();
                 
                 ctx.drawImage(canvas2, 0, 0);
-                /*ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
-                ctx.rect(0, 0, canvas.width, canvas.height);
-                ctx.fill();*/
+                //ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+                //ctx.rect(0, 0, canvas.width, canvas.height);
+                //ctx.fill();
 
+                const pixelData = ctx.getImageData(0, 0,
+                                                   canvas.width, canvas.height);
+                const pixelArray = pixelData.data;
+                          
+
+                for (let c = 0; c < pixelArray.length; c += 4) {
+                    let red = pixelArray[c];
+                    let green = pixelArray[c+1];
+                    let blue = pixelArray[c+2];
+                    let alpha = pixelArray[c+3];
+
+                    /*if (red > 220 && green > 220 && blue > 220)
+                     pixelArray[c+3] = 0;*/
+
+                    
+                    pixelArray[c+3] = Math.max(0, pixelArray[c+3] - 7);
+                    //pixelArray[c+3] = 0;
+
+
+                }
+
+                ctx.putImageData(pixelData, 0, 0);
                 currentLines = [];
 
                 for (var i = 0; i < lines; i++) {
@@ -237,8 +337,10 @@ function APIStuff() {
     return toR.promise;
 }
 
-function realAPIStuff() {
-    return axios.get('/beats/2').then(function (r) {
+function realAPIStuff(trackNum) {
+
+    // beats
+    return axios.get('/beats/' + trackNum).then(function (r) {
         return r.data.auftakt_result.click_marks
             .map(function (i) {
                 return {"newM": (i.downbeat == "false" ? false : true),

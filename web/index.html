@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.css">
   <script src="http://cdnjs.cloudflare.com/ajax/libs/q.js/0.9.2/q.min.js"></script>
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="script.js"></script>
 </head>
 
 <body onload="setUpCanvas();">
@@ -16,60 +17,43 @@
           <h1> Magical Mystical Musical Art Party! </h1>
       </div>
       <div class="row">
-          <div class="three columns">
-              <form>
-                  <div class="colorPalettes">
-                      <input class="u-full-width" type="radio" name="color" value="color1">
-                          <div class="color" style="background-color:rgb(34,83,120)">
-                          </div>
-                          <div class="color" style="background-color:rgb(22, 149, 163)">
-                          </div>
-                          <div class="color" style="background-color:rgb(172, 240, 242)">
-                          </div>
-                          <div class="color" style="background-color:rgb(243, 255, 226)">
-                          </div>
-                          <div class="color" style="background-color:rgb(235, 127, 0)">
-                          </div>
-                      </input>
-                      <input class="u-full-width" type="radio" name="color" value="color1">
-                          <div class="color" style="background-color:rgb(33,20,38)">
-                          </div>
-                          <div class="color" style="background-color:rgb(65,64,89)">
-                          </div>
-                          <div class="color" style="background-color:rgb(101,111,140)">
-                          </div>
-                          <div class="color" style="background-color:rgb(155,191,171)">
-                          </div>
-                          <div class="color" style="background-color:rgb(242,239,223)">
-                          </div>
-                      </input>
-                      <input class="u-full-width" type="radio" name="color" value="color1">
-                          <div class="color" style="background-color:rgb(255,127,0)">
-                          </div>
-                          <div class="color" style="background-color:rgb(255,217,51)">
-                          </div>
-                          <div class="color" style="background-color:rgb(204,204,82)">
-                          </div>
-                          <div class="color" style="background-color:rgb(143,178,89)">
-                          </div>
-                          <div class="color" style="background-color:rgb(25,43,51)">
-                          </div>
-                      </input>
-                  </div>
-                  <input type="button" onclick="startDrawing()" value="Submit">
-              </form>
+          <div class="three columns">            
+            <select class="u-full-width" id="exampleRecipientInput">
+              <option value="0">Talk to Me by Marian Hill</option>
+              <option value="2">Wild by Marian Hill</option>
+              <option value="3">Good by Marian Hill</option>
+              <option value="6">Save Tonight by Eagle-eye Cherry</option>
+              <option value="7">Lights by Ellie Goulding</option>
+              <option value="8">SELFIE by The Chainsmokers</option>
+              <option value="9">Cross Your Fingers by Laura Marling</option>
+              <option value="10">Be OK by Ingrid Michaelson</option>
+              <option value="11">If I Die Young by The Band Perry</option>
+              <option value="12">Sweet Dreams by Eurythmics</option>
+              <option value="13">Here by hellogoodbye</option>
+            </select>
+            <button onclick="startDrawing()" class="button-primary">Play</button>
           </div>
           <div class="nine columns">
+            
             <canvas id="art" width="800px" height="600px"
                     style="z-index: 2;">
             </canvas>
+
+
             <canvas id="overlay" width="800px" height="600px"
                     style="z-index: 1; position: relative; left: 0px; top: -610px;">
             </canvas>
 
+            
+            <canvas id="spectro" width="800px" height="600px"
+                    style="z-index: -3; position: relative; left: 0px; top: -1220px;">
+            </canvas>
+
+
+
           </div>
       </div>
   </div>
-  <script src="script.js"></script>
+
 </body>
 </html>
