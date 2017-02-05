@@ -11,6 +11,7 @@ var x0;
 var y0;
 var radius = 1;
 var colors = [
+    [[226,109,92],[114,61,70],[71,45,48]],
     [[34,83,120], [22, 149, 163], [172, 240, 242], [243, 255, 226], [235, 127, 0]],
     [[33,20,38],[65,64,89],[101,111,140],[155,191,171],[242,239,223]],
     [[255,127,0],[255,217,51],[204,204,82],[143,178,89],[25,43,51]]
@@ -29,7 +30,7 @@ var ctx3;
 function changeColor() {
     let selColor = 0;
     while (true) {
-        selColor = colors[0][Math.floor(Math.random()*4)];
+        selColor = colors[0][Math.floor(Math.random()*3)];
         const candidate = "rgb(" + selColor[0]
                   + ", " + selColor[1]
                   + ", " + selColor[2] + ")";
@@ -169,7 +170,7 @@ function draw() {
 
 
 //    ctx3.clearRect(0, 0, canvas.width, canvas.height);
-    ctx3.fillStyle = "#990066";
+    ctx3.fillStyle = "#D2D4B3";
     ctx3.fillRect(0, 0, canvas.width, canvas.height);
 
     
@@ -180,7 +181,7 @@ function draw() {
 
 
         
-        ctx3.fillStyle = "#FFE9E9";
+        ctx3.fillStyle = "#FFE1A8";
         const barHeight = (dataArray[c] / 255) * canvas.height;
         ctx3.fillRect(barWidth * c,
                       canvas.height - barHeight,
