@@ -1,16 +1,15 @@
 from secret import SONIC_API_ACCESS_TOKEN
-from dank_beats import songs
 import requests
 import pickle
 
-title = 'Talk to Me'
+title = 'Wild'
 artist = "Marian Hill"
 album = 'ACT ONE'
-file_path = 'music\Talk to Me.ogg'
+file_path = 'music\Wild.ogg'
 
 p = []
 with open('data.pickle', 'rb') as f:
-	p = pickle.load(f);
+	p = pickle.load(f)
 	
 for l in p:
 	if l[1] == title and l[2] == artist:
@@ -30,7 +29,7 @@ print("Upload Complete.")
 
 url_tempo = 'https://api.sonicapi.com/analyze/tempo'
 down_tempo = requests.get(url_tempo, data = {'access_id' : SONIC_API_ACCESS_TOKEN,
-											 'input_file' : songs['Down'],
+											 'input_file' : sonic_id,
 											 'format' : 'json'})
 
 print("Analysis Complete.")
