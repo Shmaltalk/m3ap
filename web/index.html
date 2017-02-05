@@ -60,8 +60,13 @@
               </form>
           </div>
           <div class="nine columns">
-              <canvas id="art">
-              </canvas>
+            <canvas id="art" width="800px" height="600px"
+                    style="z-index: 2;">
+            </canvas>
+            <canvas id="overlay" width="800px" height="600px"
+                    style="z-index: 1; position: relative; left: 0px; top: -610px;">
+            </canvas>
+
           </div>
       </div>
   </div>

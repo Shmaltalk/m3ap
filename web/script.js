@@ -5,64 +5,109 @@ var measures = 10;
 var currData;
 var canvas;
 var ctx;
+var canvas2;
+var ctx2;
 var x0;
 var y0;
+var radius = 1;
 var colors = [
     [[34,83,120], [22, 149, 163], [172, 240, 242], [243, 255, 226], [235, 127, 0]],
     [[33,20,38],[65,64,89],[101,111,140],[155,191,171],[242,239,223]],
     [[255,127,0],[255,217,51],[204,204,82],[143,178,89],[25,43,51]]
 ];
 
-function symmetricLine(x1, y1, x2, y2) {
-    const selColor = colors[0][Math.floor(Math.random()*5)];
-    console.log(selColor);
-    ctx.strokeStyle = "rgb(" + selColor[0]
+var dataArray;
+var audioCtx;
+var analyser;
+var currentLines = [];
+var lastColor = "";
+
+
+function changeColor() {
+    let selColor = 0;
+    while (true) {
+        selColor = colors[0][Math.floor(Math.random()*4)];
+        const candidate = "rgb(" + selColor[0]
+                  + ", " + selColor[1]
+                  + ", " + selColor[2] + ")";
+
+        if (candidate == lastColor)
+            continue;
+
+        break;
+    }
+
+    lastColor = "rgb(" + selColor[0]
         + ", " + selColor[1]
         + ", " + selColor[2] + ")";
-
     
-    
+    ctx2.strokeStyle = "rgb(" + selColor[0]
+        + ", " + selColor[1]
+        + ", " + selColor[2] + ")";
+}
 
-    ctx.beginPath();
-    ctx.moveTo(x1 + x0, y1 + y0);
-    ctx.lineTo(x2 + x0, y2 + y0);
-    ctx.stroke();
-    ctx.closePath();
+function getThickness(ampli, radius) {
+    console.log(Math.log(radius));
+    // avg: 32
+    return (ampli / 2048) * (Math.log(radius) / 8);
+}
 
-    ctx.beginPath();
-    ctx.moveTo(-x1 + x0, -y1 + y0);
-    ctx.lineTo(-x2 + x0, -y2 + y0);
-    ctx.stroke();
-    ctx.closePath();
+function symmetricLine(x1, y1, x2, y2, thickness) {
+    ctx2.lineWidth = thickness;
 
-    ctx.beginPath();
-    ctx.moveTo(x1 + x0, -y1 + y0);
-    ctx.lineTo(x2 + x0, -y2 + y0);
-    ctx.stroke();
-    ctx.closePath();
+    ctx2.beginPath();
+    ctx2.moveTo(x1 + x0, y1 + y0);
+    ctx2.lineTo(x2 + x0, y2 + y0);
+    ctx2.stroke();
+    ctx2.closePath();
 
-    ctx.beginPath();
-    ctx.moveTo(-x1 + x0, y1 + y0);
-    ctx.lineTo(-x2 + x0, y2 + y0);
-    ctx.stroke();
-    ctx.closePath();
+    ctx2.beginPath();
+    ctx2.moveTo(-x1 + x0, -y1 + y0);
+    ctx2.lineTo(-x2 + x0, -y2 + y0);
+    ctx2.stroke();
+    ctx2.closePath();
+
+    ctx2.beginPath();
+    ctx2.moveTo(x1 + x0, -y1 + y0);
+    ctx2.lineTo(x2 + x0, -y2 + y0);
+    ctx2.stroke();
+    ctx2.closePath();
+
+    ctx2.beginPath();
+    ctx2.moveTo(-x1 + x0, y1 + y0);
+    ctx2.lineTo(-x2 + x0, y2 + y0);
+    ctx2.stroke();
+    ctx2.closePath();
 }
 
 
 function setUpCanvas() {
+    let overlay = document.getElementById("overlay");
+    canvas2 = overlay;
     canvas = document.getElementById('art');
     ctx = canvas.getContext('2d');
+    ctx2 = overlay.getContext('2d');
     canvas.width = 800;
     canvas.height = 600;
     x0 = canvas.width / 2;
     y0 = canvas.height / 2;
+
+    
 }
 
 function startDrawing() {
     var promise = realAPIStuff();
     promise.then(function(result) {
+        audioCtx = new AudioContext();
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        audio = new Audio('../music/Wild.ogg');
+        let source = audioCtx.createMediaElementSource(audio);
+        source.connect(analyser);
+        analyser.connect(audioCtx.destination);
         beatsArray = result;
-        audio = new Audio('../music/Talk to Me.ogg');
+
         audio.addEventListener('loadedmetadata', function() {
             audio.play();
             requestAnimationFrame(draw);
@@ -72,46 +117,83 @@ function startDrawing() {
 
 function draw() {
     time = (audio.currentTime);
+    analyser.getByteFrequencyData(dataArray);
+    let avg = 0.0;
+    for (let c = 0; c < analyser.frequencyBinCount; c++) {
+        //avg = Math.max(avg, dataArray[c]);
+        avg += Math.pow(dataArray[c], 2);
+    }
+
+    avg /= analyser.frequencyBinCount;
+
+    
     if (beatsArray[0]) {
+        ctx2.clearRect(0, 0, canvas.width, canvas.height);
+        /*ctx2.beginPath();
+        ctx2.moveTo(0, 100);
+        ctx2.lineTo(canvas.width, 100);
+        ctx2.lineWidth = avg;
+        ctx2.stroke();
+        ctx2.closePath();*/
+
+        for (let line of currentLines) {
+            let thck = getThickness(avg, radius);
+            symmetricLine(line[0], line[1],
+                           line[2], line[3], thck);
+            symmetricLine(line[2], line[3],
+                          line[4], line[5], thck);
+                        
+        }
+
         if (time >= beatsArray[0]['timeStamp']) {
+            
             currData = beatsArray.shift();
-            if (currData['newM'] == true || true) {
-                console.log(currData['timeStamp']);
+            if (currData['newM'] == true) {
                 var circleFillColor = Math.random(5);
-                var radius = 8 * currData['timeStamp'];
+                radius = (240 / 2) *
+                    (1 - Math.cos(Math.PI * currData['timeStamp'] / 30))
+                    + 45;
                 var startAngle = 0 * Math.PI;
                 var endAngle = 2 * Math.PI;
-                let lines = 5;
+                let lines = Math.floor(Math.random() * 6) + 1;
 
                 /*ctx.beginPath();
                 ctx.arc(x0, y0, radius, startAngle, endAngle, true);
                 ctx.strokeStyle = "red";
-                ctx.stroke();*/
+                 ctx.stroke();*/
+
+                changeColor();
+                
+                ctx.drawImage(canvas2, 0, 0);
+                /*ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+                ctx.rect(0, 0, canvas.width, canvas.height);
+                ctx.fill();*/
+
+                currentLines = [];
 
                 for (var i = 0; i < lines; i++) {
                     // get a point on the arc
-                    var randAngle1 = Math.random() * Math.PI * .5;
+                    var randAngle1 = Math.random() * 90 * Math.PI * .5;
                     var randX1 = Math.cos(randAngle1) * radius;
                     var randY1 = Math.sin(randAngle1) * radius;
 
                     // get two points within the circle
-                    var randAngle2 = Math.random() * Math.PI * .5;
+                    var randAngle2 = Math.random() * 90 * Math.PI * .5;
                     var rSq2 = Math.random() * radius * radius;
                     var randX2 = Math.sqrt(rSq2) * Math.cos(randAngle2);
                     var randY2 = Math.sqrt(rSq2) * Math.sin(randAngle2);
 
-                    var randAngle3 = Math.random() * Math.PI * .5;
+                    var randAngle3 = Math.random() * 90 * Math.PI * .5;
                     var rSq3 = Math.random() * radius * radius;
                     var randX3 = Math.sqrt(rSq3) * Math.cos(randAngle3);
                     var randY3 = Math.sqrt(rSq3) * Math.sin(randAngle3);
 
-                    console.log(randX1 + ", " + randY1);
-                    console.log(randX2 + ", " + randY2);
-                    console.log(randX3 + ", " + randY3);
-                    console.log("");
-
-                    symmetricLine(randX1, randY1, randX2, randY2);
-                    symmetricLine(randX2, randY2, randX3, randY3);
+                    currentLines.push([randX1, randY1,
+                                       randX2, randY2,
+                                       randX3, randY3]);
+                    
+                    //symmetricLine(randX1, randY1, randX2, randY2);
+                    //symmetricLine(randX2, randY2, randX3, randY3);
                     
                 }
             }
@@ -156,7 +238,7 @@ function APIStuff() {
 }
 
 function realAPIStuff() {
-    return axios.get('/beats/1').then(function (r) {
+    return axios.get('/beats/2').then(function (r) {
         return r.data.auftakt_result.click_marks
             .map(function (i) {
                 return {"newM": (i.downbeat == "false" ? false : true),
