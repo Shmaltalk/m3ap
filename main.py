@@ -2,10 +2,10 @@ from secret import SONIC_API_ACCESS_TOKEN
 import requests
 import pickle
 
-title = 'SELFIE'
-artist = "The Chainsmokers"
-album = 'SELFIE'
-file_path = 'music\SELFIE.ogg'
+title = 'Here'
+artist = "hellogoodbye"
+album = 'Aliens'
+file_path = 'music\Here.ogg'
 
 p = []
 with open('data.pickle', 'rb') as f:
