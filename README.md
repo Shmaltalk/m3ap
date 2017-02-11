@@ -1,4 +1,3 @@
-#Magical Mythical Musical Art Party
 
 ![Screenshot](http://i.imgur.com/IFcSmfs.png)
 
